@@ -1,0 +1,103 @@
+name: MSBuild
+
+on:
+  push:
+    tags:
+      - release*
+    
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    # allows manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+    - name: Checkout branch
+      uses: actions/checkout@v4
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+### build (release mode x64)
+    - name: Build release mode (x64)
+      shell: cmd
+      working-directory: ${{ github.workspace }}
+      run: msbuild /nologo /target:Clean;console_exports_printer:Rebuild /m /p:Configuration=Release,Platform=x64 console_exports_printer.sln
+
+### build (release mode x32)
+    - name: Build release mode (x32)
+      shell: cmd
+      working-directory: ${{ github.workspace }}
+      run: msbuild /nologo /target:Clean;console_exports_printer:Rebuild /m /p:Configuration=Release,Platform=x86 console_exports_printer.sln
+
+
+### build (debug mode x64)
+    - name: Build debug mode (x64)
+      shell: cmd
+      working-directory: ${{ github.workspace }}
+      run: msbuild /nologo /target:Clean;console_exports_printer:Rebuild /m /p:Configuration=Debug,Platform=x64 console_exports_printer.sln
+
+### build (debug mode x32)
+    - name: Build debug mode (x32)
+      shell: cmd
+      working-directory: ${{ github.workspace }}
+      run: msbuild /nologo /target:Clean;console_exports_printer:Rebuild /m /p:Configuration=Debug,Platform=x86 console_exports_printer.sln
+
+
+
+### upload artifact/package to github Actions (release mode)
+    - name: Upload build package (release)
+      uses: actions/upload-artifact@v4
+      with:
+        name: "console_exports_printer-build-release-${{ github.sha }}"
+        path: bin/Release/
+        if-no-files-found: 'error'
+        compression-level: 9
+        retention-days: 1
+
+### upload artifact/package to github Actions (debug mode)
+    - name: Upload build package (debug)
+      uses: actions/upload-artifact@v4
+      with:
+        name: "console_exports_printer-build-debug-${{ github.sha }}"
+        path: bin/Debug/
+        if-no-files-found: 'error'
+        compression-level: 9
+        retention-days: 1
+
+
+### package (release mode) if this is a tag push
+    - name: Package release archive (release)
+      uses: vimtor/action-zip@v1.1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: bin/Release/
+        dest: bin/package/console_exports_printer-release.zip
+
+### package (debug mode) if this is a tag push
+    - name: Package release archive (debug)
+      uses: vimtor/action-zip@v1.1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: bin/Debug/
+        dest: bin/package/console_exports_printer-debug.zip
+
+### release (release mode) if this is a tag push
+    - name: Release artifact (release)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: "bin/package/console_exports_printer-release.zip"
+
+### release (debug mode) if this is a tag push
+    - name: Release artifact (debug)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: "bin/package/console_exports_printer-debug.zip"
