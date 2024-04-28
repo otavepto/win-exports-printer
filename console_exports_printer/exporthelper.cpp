@@ -200,8 +200,6 @@ void exporthelper::traverse_exports(const char *file_buff, ExportIteratorCb_t ca
         // from the docs, the ordinal value is just the index we got from the 'ordinal list' + the bias value
         DWORD function_ordinal = fIdx + ordinals_base;
 
-        PVOID function_addr = (PVOID)(file_buff + function_rva);
-
         // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#export-address-table
         // if function RVA is forwarded to the name of the actual provider
         // TODO load actual provider and get the export's real address
