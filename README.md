@@ -4,7 +4,8 @@ A console application to print module exports for Windows, useful for batch scri
 ## Example output:
 ```batch
 >console_exports_printer.exe "%windir%\SysWOW64\d3d9.dll"
-
+```
+```batch
 @16     0x000B8A10      <UNNAMED_EXPORT>
 @17     0x000BA480      <UNNAMED_EXPORT>
 @18     0x000BA4E0      <UNNAMED_EXPORT>
